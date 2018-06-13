@@ -40,6 +40,7 @@ type Personalization struct {
 	Value string
 }
 
+// SendTransactional send transactional email using Sendgrid
 func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*rest.Response, error) {
 
 	// Create email
