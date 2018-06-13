@@ -40,7 +40,7 @@ type Personalization struct {
 	Value string
 }
 
-func sendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*rest.Response, error) {
+func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*rest.Response, error) {
 
 	// Create email
 	m := mail.NewV3Mail()
