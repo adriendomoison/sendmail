@@ -71,17 +71,18 @@ func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*r
 			return nil, errors.New("File was corrupted")
 		}
 
+		attachment := mail.NewAttachment()
 		if emailInfo.Attachments[k].Type == PDF {
-			pdf := mail.NewAttachment()
 			encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
-			pdf.SetContent(encoded)
-			pdf.SetType("application/pdf")
-			pdf.SetFilename(emailInfo.Attachments[k].Name + ".pdf")
-			pdf.SetDisposition("attachment")
-			pdf.SetContentID("Attachment")
+			attachment.SetContent(encoded)
+			attachment.SetType("application/pdf")
+			attachment.SetFilename(emailInfo.Attachments[k].Name + ".pdf")
+			attachment.SetDisposition("attachment")
+			attachment.SetContentID("Attachment")
 		} else {
 			return nil, errors.New("Unknown file type '" + emailInfo.Attachments[k].Type + "'")
 		}
+		m.Attachments = append(m.Attachments, attachment)
 	}
 
 	request := sendgrid.GetRequest(sendgridKey, "/v3/mail/send", "https://api.sendgrid.com")
