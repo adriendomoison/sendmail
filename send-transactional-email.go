@@ -20,6 +20,8 @@ const (
 type TransactionalEmailInfo struct {
 	SenderFullName    string
 	SenderEmail       string
+	ReplyToFullName   string
+	ReplyToEmail      string
 	RecipientFullName string
 	RecipientEmail    string
 	Subject           string
@@ -46,6 +48,13 @@ func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*r
 	// Create email
 	m := mail.NewV3Mail()
 	m.SetFrom(mail.NewEmail(emailInfo.SenderFullName, emailInfo.SenderEmail))
+	if emailInfo.ReplyToEmail != "" {
+		if emailInfo.ReplyToFullName != "" {
+			m.SetReplyTo(mail.NewEmail(emailInfo.ReplyToFullName, emailInfo.RecipientEmail))
+		} else {
+			return nil, errors.New("Missing replier full name.")
+		}
+	}
 	if emailInfo.Subject != "" {
 		m.Subject = emailInfo.Subject
 	}
