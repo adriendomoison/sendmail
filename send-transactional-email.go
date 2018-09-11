@@ -4,9 +4,6 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"encoding/base64"
 	"github.com/sendgrid/sendgrid-go"
-	"bytes"
-	"io"
-	"mime/multipart"
 	"github.com/go-errors/errors"
 	"github.com/sendgrid/rest"
 )
@@ -32,7 +29,20 @@ type TransactionalEmailInfo struct {
 }
 
 type FileInfo struct {
-	File multipart.File
+	/*
+	* ||| How to get a File []byte: |||
+	*
+	* -> FOR MULTIPART FILES
+	*
+	* buf := bytes.NewBuffer(nil)
+	* io.Copy(buf, MultipartFile)
+	* FileInfo.File = buf.Bytes()
+	*
+	* -> FOR os.FILES
+	*
+	* FileInfo.File, err := ioutil.ReadFile(fileOnDiskName)
+	*/
+	File []byte
 	Name string
 	Type FileType
 }
@@ -75,14 +85,9 @@ func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*r
 
 	//Attachments
 	for k := range emailInfo.Attachments {
-		buf := bytes.NewBuffer(nil)
-		if _, err := io.Copy(buf, emailInfo.Attachments[k].File); err != nil {
-			return nil, errors.New("File was corrupted")
-		}
-
 		attachment := mail.NewAttachment()
 		if emailInfo.Attachments[k].Type == PDF {
-			encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
+			encoded := base64.StdEncoding.EncodeToString(emailInfo.Attachments[k].File)
 			attachment.SetContent(encoded)
 			attachment.SetType("application/pdf")
 			attachment.SetFilename(emailInfo.Attachments[k].Name + ".pdf")
