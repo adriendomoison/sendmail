@@ -6,7 +6,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/go-errors/errors"
 	"github.com/sendgrid/rest"
-	"github.com/adriendomoison/apitool"
 )
 
 type FileType string
@@ -57,7 +56,6 @@ type Personalization struct {
 func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*rest.Response, error) {
 
 	// Create email
-	apitool.Logger.Warn("Create email")
 	m := mail.NewV3Mail()
 	m.SetFrom(mail.NewEmail(emailInfo.SenderFullName, emailInfo.SenderEmail))
 	if emailInfo.ReplyToEmail != "" {
@@ -78,21 +76,18 @@ func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*r
 	}
 
 	// Filling personalization content
-	apitool.Logger.Warn("Filling personalization content")
 	for key := range emailInfo.Personalization {
 		m.Personalizations[0].SetSubstitution(emailInfo.Personalization[key].Name, emailInfo.Personalization[key].Value)
 	}
 
 	// Set template to use
-	apitool.Logger.Warn("Set template to use")
 	m.SetTemplateID(emailInfo.TransactionalId)
 
 	//Attachments
-	apitool.Logger.Warn("Attachments")
 	for k := range emailInfo.Attachments {
 		attachment := mail.NewAttachment()
 		if emailInfo.Attachments[k].Type == PDF {
-			encoded := base64.StdEncoding.EncodeToString(emailInfo.Attachments[k].File)
+			encoded := base64.StdEncoding.EncodeToString([]byte(emailInfo.Attachments[k].File))
 			attachment.SetContent(encoded)
 			attachment.SetType("application/pdf")
 			attachment.SetFilename(emailInfo.Attachments[k].Name + ".pdf")
@@ -104,13 +99,9 @@ func SendTransactional(sendgridKey string, emailInfo TransactionalEmailInfo) (*r
 		m.Attachments = append(m.Attachments, attachment)
 	}
 
-	apitool.Logger.Warn("Requesting to Sendgrid")
 	request := sendgrid.GetRequest(sendgridKey, "/v3/mail/send", "https://api.sendgrid.com")
 	request.Method = "POST"
 	request.Body = mail.GetRequestBody(m)
 	response, err := sendgrid.API(request)
-	apitool.Logger.Warn(request)
-	apitool.Logger.Warn(response)
-	apitool.Logger.Warn(err)
 	return response, err
 }
